@@ -83,7 +83,7 @@ def agrupar(documentos: list[Documento], ignorados: list[Path] | None = None) ->
 
     for g in grupos:
         if not g.soportes:
-            g.avisos.append("Sin soportes: el PDF solo tendría el comprobante")
+            g.avisos.append("Sin soportes: solo contiene el comprobante")
 
     grupos.sort(key=lambda g: (list(REGLAS).index(g.ancla.prefijo), g.ancla.fecha, g.ancla.numero))
     return Resultado(grupos, huerfanos, invalidos, ignorados or [])
