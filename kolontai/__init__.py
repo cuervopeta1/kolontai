@@ -7,4 +7,4 @@
 # cualquier versión posterior. Ver el archivo LICENSE.
 """Kolontái: organizador de soportes contables."""
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"

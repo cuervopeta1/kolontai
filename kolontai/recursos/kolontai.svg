@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Kolontái · camafeo inspirado en Alexandra Kolontái (1872-1952) · GPL-3.0-or-later -->
+  <defs>
+    <clipPath id="disco"><circle cx="256" cy="256" r="232"/></clipPath>
+  </defs>
+  <circle cx="256" cy="256" r="250" fill="#f1e4cc"/>
+  <circle cx="256" cy="256" r="232" fill="#9e2a2b"/>
+  <g clip-path="url(#disco)">
+    <!-- hombros -->
+    <path d="M92 540 C100 466 150 424 210 412 L330 412 C388 424 430 466 438 540 Z" fill="#f1e4cc"/>
+    <!-- rostro y cuello, de perfil hacia la derecha -->
+    <path d="M216 400 L218 334 C192 306 176 268 176 228 C176 162 226 112 292 112
+             C342 112 374 148 376 192 C377 206 378 216 382 226 C386 240 394 256 404 272
+             C406 280 400 284 394 284 L388 286 C392 292 394 298 390 302 L384 306
+             C390 310 392 316 386 322 C382 326 380 330 382 334
+             C388 344 386 356 374 362 C360 368 340 362 326 358 L322 400 Z" fill="#f1e4cc"/>
+    <!-- cuello alto de la blusa -->
+    <path d="M206 372 C250 382 296 382 334 372 L336 414 C292 426 250 426 204 414 Z" fill="#dcc39a"/>
+    <!-- cabello peinado hacia atrás -->
+    <path d="M376 184 C370 136 336 106 292 106 C222 106 170 160 170 228
+             C170 270 188 306 216 336 C244 318 266 296 276 268
+             C284 246 284 214 296 196 C312 174 346 172 372 182 Z" fill="#4e1718"/>
+    <path d="M356 164 C320 146 266 150 230 178 M330 136 C290 126 246 136 214 164"
+          fill="none" stroke="#6f2123" stroke-width="6" stroke-linecap="round"/>
+    <!-- moño bajo -->
+    <circle cx="200" cy="292" r="46" fill="#4e1718"/>
+    <path d="M178 300 C176 278 196 266 214 276 C226 284 222 302 208 304"
+          fill="none" stroke="#6f2123" stroke-width="6" stroke-linecap="round"/>
+    <!-- ojo -->
+    <path d="M338 224 C346 216 358 216 364 224 C356 229 346 229 338 224 Z" fill="#4e1718"/>
+  </g>
+</svg>

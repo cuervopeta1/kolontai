@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QMimeData, QObject, QSettings, Qt, QThread, QTimer, QUrl, Signal
-from PySide6.QtGui import QBrush, QColor, QDesktopServices, QDrag, QFont, QKeySequence
+from PySide6.QtGui import (QBrush, QColor, QDesktopServices, QDrag, QFont, QIcon,
+                           QKeySequence, QPixmap)
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QFileDialog, QHBoxLayout, QHeaderView, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox,
@@ -21,6 +22,7 @@ from .agrupador import REGLAS, Grupo, Resultado, analizar, compatibles, mover
 from .nombres import Documento
 from .unir import CARPETA_SALIDA, generar
 
+RECURSOS = Path(__file__).resolve().parent / "recursos"
 MIME = "application/x-kolontai-documento"
 ROL = Qt.ItemDataRole.UserRole
 
@@ -170,6 +172,8 @@ class Ventana(QMainWindow):
 
     def _armar(self) -> None:
         estilo = self.style()
+        ayuda = self.menuBar().addMenu("Ayuda")
+        ayuda.addAction("Acerca de Kolontái", self.acerca_de)
 
         self.btn_carpeta = QPushButton(estilo.standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon),
                                        "Elegir carpeta…")
@@ -273,6 +277,26 @@ class Ventana(QMainWindow):
         capas.addWidget(ayuda)
         capas.addWidget(widget, 1)
         return caja
+
+    def acerca_de(self) -> None:
+        caja = QMessageBox(self)
+        caja.setWindowTitle("Acerca de Kolontái")
+        logo = QPixmap(str(RECURSOS / "kolontai.png"))
+        if not logo.isNull():
+            caja.setIconPixmap(logo.scaled(112, 112, Qt.AspectRatioMode.KeepAspectRatio,
+                                           Qt.TransformationMode.SmoothTransformation))
+        caja.setTextFormat(Qt.TextFormat.RichText)
+        caja.setText(
+            f"<h3>Kolontái {__version__}</h3>"
+            "<p>Une en un solo PDF los soportes contables de cada tercero.</p>"
+            "<p>Copyright © 2026 Juan Sebastián Berrío Posada.</p>"
+            "<p>Este programa es software libre: puede redistribuirlo y/o modificarlo "
+            "bajo los términos de la Licencia Pública General GNU, versión 3 o "
+            "posterior. Se distribuye <b>sin ninguna garantía</b>. Consulte el "
+            "archivo LICENSE o <a href='https://www.gnu.org/licenses/gpl-3.0.html'>"
+            "gnu.org/licenses/gpl-3.0</a>.</p>"
+            "<p>El nombre y el logo rinden homenaje a Alexandra Kolontái (1872-1952).</p>")
+        caja.exec()
 
     # ---------- carga ----------
 
@@ -572,9 +596,17 @@ class Ventana(QMainWindow):
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.platform == "win32":
+        # Para que Windows muestre el logo de Kolontái en la barra de tareas
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Kolontai.Kolontai")
+        except Exception:
+            pass
     app = QApplication(sys.argv if argv is None else argv)
     app.setApplicationName("Kolontái")
     app.setApplicationVersion(__version__)
+    app.setWindowIcon(QIcon(str(RECURSOS / "kolontai.png")))
     app.setStyle("Fusion")
     ventana = Ventana()
     ventana.show()
