@@ -47,3 +47,12 @@ def test_archivo_danado_no_detiene_los_demas(tmp_path):
     pdf(tmp_path / "CE_2_06.09.2026_B.pdf")
     salidas, _ = generar(analizar(tmp_path), tmp_path)
     assert salidas[0].error and not salidas[1].error
+
+
+def test_generar_solo_los_elegidos(tmp_path):
+    pdf(tmp_path / "CE_1_05.09.2026_A.pdf")
+    pdf(tmp_path / "CE_2_06.09.2026_B.pdf")
+    r = analizar(tmp_path)
+    salidas, reporte = generar(r, tmp_path, grupos=[r.grupos[1]])
+    assert [s.ruta.name for s in salidas] == ["CEC_2_06.09.2026_B.pdf"]
+    assert "OMITIDO;CEC_1_05.09.2026_A.pdf" in reporte.read_text(encoding="utf-8-sig")

@@ -93,13 +93,16 @@ def generar(
     resultado: Resultado,
     carpeta: Path,
     progreso: Callable[[int, int, str], None] | None = None,
+    grupos: list[Grupo] | None = None,
 ) -> tuple[list[Salida], Path]:
-    """Une todos los grupos en <carpeta>/Kolontai_salida y deja un reporte CSV."""
+    """Une los grupos (todos, o los indicados) en <carpeta>/Kolontai_salida
+    y deja un reporte CSV."""
     destino = carpeta / CARPETA_SALIDA
     destino.mkdir(exist_ok=True)
+    elegidos = resultado.grupos if grupos is None else grupos
     salidas = []
-    total = len(resultado.grupos)
-    for i, grupo in enumerate(resultado.grupos, 1):
+    total = len(elegidos)
+    for i, grupo in enumerate(elegidos, 1):
         if progreso:
             progreso(i, total, grupo.nombre_salida)
         salidas.append(unir_grupo(grupo, destino))
@@ -114,12 +117,14 @@ def escribir_reporte(salidas: list[Salida], resultado: Resultado, destino: Path)
         w = csv.writer(f, delimiter=";")
         w.writerow(["estado", "archivo_generado", "paginas", "documentos", "observaciones"])
         for s in salidas:
-            observaciones = s.grupo.avisos + [
+            observaciones = s.grupo.observaciones + [
                 f"{d.nombre}: {a}" for d in s.grupo.documentos for a in d.avisos
             ]
             if s.error:
                 estado = "ERROR"
                 observaciones.insert(0, s.error)
+            elif s.grupo.revisado:
+                estado = "REVISADO"
             else:
                 estado = "REVISAR" if s.grupo.revisar else "OK"
             w.writerow([
@@ -129,6 +134,11 @@ def escribir_reporte(salidas: list[Salida], resultado: Resultado, destino: Path)
                 " | ".join(d.nombre for d in s.grupo.documentos),
                 " | ".join(observaciones),
             ])
+        generados = [s.grupo for s in salidas]
+        for g in resultado.grupos:
+            if not any(g is x for x in generados):
+                w.writerow(["OMITIDO", g.nombre_salida, "",
+                            " | ".join(d.nombre for d in g.documentos), "No se marcó para generar"])
         for d in resultado.huerfanos:
             w.writerow(["SIN COMPROBANTE", "", "", d.nombre, ""])
         for d in resultado.invalidos:

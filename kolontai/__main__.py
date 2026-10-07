@@ -1,6 +1,7 @@
 # Kolontái — interfaz de consola
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Uso: python -m kolontai CARPETA [--generar]"""
+"""Uso: python -m kolontai               (ventana)
+     python -m kolontai CARPETA [--generar]   (consola)"""
 
 import argparse
 import sys
@@ -18,7 +19,7 @@ def imprimir_vista_previa(r: Resultado) -> None:
             print(f"     {d.nombre}")
             for a in d.avisos:
                 print(f"        · {a}")
-        for a in g.avisos:
+        for a in g.observaciones:
             print(f"   ⚠ {a}")
     if r.huerfanos:
         print("\nSOPORTES SIN COMPROBANTE")
@@ -41,6 +42,11 @@ def imprimir_vista_previa(r: Resultado) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv:  # sin argumentos: abrir la ventana
+        from .gui import main as abrir_ventana
+        return abrir_ventana()
+
     p = argparse.ArgumentParser(prog="kolontai", description="Une los soportes contables de cada tercero en un solo PDF.")
     p.add_argument("carpeta", type=Path, help="carpeta con los documentos del mes")
     p.add_argument("--generar", action="store_true", help="crear los PDF (sin esto solo muestra la vista previa)")

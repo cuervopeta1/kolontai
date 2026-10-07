@@ -75,3 +75,23 @@ def test_carpeta_de_muestras():
     assert len(r.grupos) == 8
     assert [d.nombre for d in r.huerfanos] == ["FV_A3390_15.09.2026_Papeleria Central.pdf"]
     assert len(r.invalidos) == 2 and len(r.ignorados) == 1
+
+
+def test_mover_entre_grupos_y_a_sin_comprobante():
+    from kolontai.agrupador import mover
+    r = grupos_de("CE_1_05.09.2026_A.pdf", "CE_2_06.09.2026_B.pdf", "FV_9_05.09.2026_C.pdf")
+    a, b = r.grupos
+    (fv,) = r.huerfanos
+    assert mover(r, fv, a) == "" and fv in a.soportes and not r.huerfanos
+    assert mover(r, fv, b) == "" and fv in b.soportes and not a.soportes
+    assert a.revisado and b.revisado and not b.revisar
+    assert mover(r, fv, None) == "" and r.huerfanos == [fv]
+
+
+def test_mover_rechaza_lo_incompatible():
+    from kolontai.agrupador import mover
+    r = grupos_de("CE_1_05.09.2026_A.pdf", "NM_2_30.09.2026_Septiembre.pdf",
+                  "PAGONM_3_30.09.2026_Septiembre.pdf")
+    ce, nm = r.grupos
+    assert mover(r, nm.soportes[0], ce)       # un PAGONM no va a un CE
+    assert mover(r, ce.ancla, nm)             # un CE no se mueve

@@ -28,6 +28,7 @@ class Grupo:
     ancla: Documento
     soportes: list[Documento] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
+    revisado: bool = False  # alguien lo ajustó o lo aprobó a mano
 
     @property
     def documentos(self) -> list[Documento]:
@@ -45,8 +46,17 @@ class Grupo:
         return f"{prefijo}_{a.numero}_{a.fecha:%d.%m.%Y}_{tercero}.pdf"
 
     @property
+    def observaciones(self) -> list[str]:
+        obs = list(self.avisos)
+        if not self.soportes:
+            obs.append("Sin soportes: solo contiene el comprobante")
+        return obs
+
+    @property
     def revisar(self) -> bool:
-        return bool(self.avisos) or any(d.avisos for d in self.documentos)
+        if self.revisado:
+            return False
+        return bool(self.observaciones) or any(d.avisos for d in self.documentos)
 
 
 @dataclass
@@ -80,10 +90,6 @@ def agrupar(documentos: list[Documento], ignorados: list[Path] | None = None) ->
             huerfanos.append(doc)
         else:
             elegido.soportes.append(doc)
-
-    for g in grupos:
-        if not g.soportes:
-            g.avisos.append("Sin soportes: solo contiene el comprobante")
 
     grupos.sort(key=lambda g: (list(REGLAS).index(g.ancla.prefijo), g.ancla.fecha, g.ancla.numero))
     return Resultado(grupos, huerfanos, invalidos, ignorados or [])
@@ -122,6 +128,35 @@ def _elegir(doc: Documento, candidatos: list[Grupo]) -> Grupo | None:
     if aviso_nombre:
         elegido.avisos.append(aviso_nombre)
     return elegido
+
+
+def compatibles(doc: Documento, resultado: Resultado) -> list[Grupo]:
+    """Grupos a los que puede ir un soporte (un PAGO nunca va a una nómina)."""
+    ancla = ANCLA_DE.get(doc.prefijo)
+    return [g for g in resultado.grupos if g.ancla.prefijo == ancla]
+
+
+def mover(resultado: Resultado, doc: Documento, destino: Grupo | None) -> str:
+    """Mueve un soporte a otro grupo, o a 'sin comprobante' si destino es None.
+    Devuelve un mensaje de error, o "" si se pudo."""
+    if doc.prefijo in REGLAS:
+        return f"{doc.nombre} es la base de su grupo y no se puede mover."
+    if destino is not None and destino not in compatibles(doc, resultado):
+        return f"Un {doc.prefijo} no puede ir en {destino.nombre_salida}."
+    origen = next((g for g in resultado.grupos if any(s is doc for s in g.soportes)), None)
+    if origen is destino:
+        return ""
+    if origen is not None:
+        origen.soportes.remove(doc)
+        origen.revisado = True
+    else:
+        resultado.huerfanos.remove(doc)
+    if destino is not None:
+        destino.soportes.append(doc)
+        destino.revisado = True
+    else:
+        resultado.huerfanos.append(doc)
+    return ""
 
 
 def analizar(carpeta: Path) -> Resultado:
